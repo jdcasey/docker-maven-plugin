@@ -213,7 +213,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
 
     protected DockerProvider getDockerProvider() {
         DockerProvider provider = new DockerProviderSupplier(providerName).get();
-        provider.setCredentials(getCredentials());
+        Credentials creds = getCredentials();
+        provider.setCredentials( creds );
+        getLog().debug( "Using credentials: " + creds );
         provider.setLogger(getLog());
         provider.setRepositorySystem(repositorySystem);
         provider.setRepositorySystemSession(repositorySystemSession);
