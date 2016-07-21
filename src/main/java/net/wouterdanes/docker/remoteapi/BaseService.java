@@ -69,6 +69,9 @@ public abstract class BaseService {
         serviceEndPoint = createDockerTarget(dockerApiRoot)
                 .path(TARGET_DOCKER_API_VERSION)
                 .path(endPointPath);
+
+        // FIXME: Remove this, or use a normal logging API.
+        System.out.println( "Using Docker URL: " + serviceEndPoint.getUri() );
     }
 
     public void setCredentials(Credentials credentials) {
