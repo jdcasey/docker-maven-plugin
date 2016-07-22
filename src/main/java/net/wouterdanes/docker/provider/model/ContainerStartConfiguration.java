@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import net.wouterdanes.docker.remoteapi.model.ContainerHostConfig;
 import net.wouterdanes.docker.remoteapi.model.ContainerLink;
 
 /**
@@ -59,9 +60,9 @@ public class ContainerStartConfiguration {
     private String macAddress;
 
     /**
-     * Supply an optional network mode
+     * Supply an optional host configuration
      */
-    private String networkMode;
+    private ContainerHostConfig hostConfig;
 
     /**
      * Set the image name or id to use and returns the object so you can chain from/with statements.
@@ -116,9 +117,9 @@ public class ContainerStartConfiguration {
         return this;
     }
 
-    public ContainerStartConfiguration withNetworkMode( String networkMode )
+    public ContainerStartConfiguration withHostConfig( ContainerHostConfig hostConfig )
     {
-        this.networkMode = networkMode;
+        this.hostConfig = hostConfig;
         return this;
     }
     
@@ -154,8 +155,8 @@ public class ContainerStartConfiguration {
         return startupTimeout != 0 ? startupTimeout : DEFAULT_STARTUP_TIMEOUT;
     }
 
-    public String getNetworkMode()
+    public ContainerHostConfig getHostConfig()
     {
-        return networkMode;
+        return hostConfig;
     }
 }
