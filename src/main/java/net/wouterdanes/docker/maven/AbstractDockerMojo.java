@@ -36,6 +36,11 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -211,7 +216,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
         }
     }
 
-    protected DockerProvider getDockerProvider() {
+    protected DockerProvider getDockerProvider() throws MojoExecutionException {
         DockerProvider provider = new DockerProviderSupplier(providerName).get();
         Credentials creds = getCredentials();
         provider.setCredentials( creds );
@@ -223,7 +228,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
         return provider;
     }
 
-    protected Credentials getCredentials() {
+    protected Credentials getCredentials() throws MojoExecutionException {
         // priority to credentials from plugin configuration over the ones from settings
         return Stream.of(getCredentialsFromParameters(), getCredentialsFromSettings())
             .filter(Optional::isPresent)
@@ -241,7 +246,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
         return of(new Credentials(userName, password, email, null));
     }
 
-    private Optional<Credentials> getCredentialsFromSettings() {
+    private Optional<Credentials> getCredentialsFromSettings() throws MojoExecutionException {
         if(settings == null) {
             getLog().debug("No settings.xml");
             return empty();
@@ -252,7 +257,22 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
             return empty();
         }
         getLog().debug("Using credentials from Maven settings: " + server.getUsername());
-        return of(new Credentials(server.getUsername(), server.getPassword(), getEmail(server), null));
+
+        String password = server.getPassword();
+        try {
+            SecDispatcher secDispatcher = new DefaultSecDispatcher() {{
+                _cipher = new DefaultPlexusCipher();
+            }};
+
+            password = secDispatcher.decrypt(server.getPassword());
+
+        } catch (SecDispatcherException e) {
+            throw new MojoExecutionException("Unable to decrypt password", e);
+        } catch (PlexusCipherException e) {
+            throw new MojoExecutionException("Unable to initialize password decryption", e);
+        }
+
+        return of(new Credentials(server.getUsername(), password, getEmail(server), null));
     }
 
     /**
