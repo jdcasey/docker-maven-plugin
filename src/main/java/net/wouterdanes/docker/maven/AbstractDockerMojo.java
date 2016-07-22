@@ -143,7 +143,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
         return ofNullable(map.get(startId));
     }
 
-    protected void registerBuiltImage(String imageId, ImageBuildConfiguration imageConfig) throws MojoFailureException {
+    protected void registerBuiltImage(String imageId, ImageBuildConfiguration imageConfig)
+            throws MojoFailureException, MojoExecutionException
+    {
         BuiltImageInfo info = new BuiltImageInfo(imageId, imageConfig);
 
         Map<String, BuiltImageInfo> builtImages = obtainMapFromPluginContext(BUILT_IMAGES_KEY);
@@ -316,11 +318,15 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
         return Collections.unmodifiableList(list);
     }
 
-    protected void enqueueForPushing(final String imageId, final ImageBuildConfiguration imageConfig) throws MojoFailureException {
+    protected void enqueueForPushing(final String imageId, final ImageBuildConfiguration imageConfig)
+            throws MojoFailureException, MojoExecutionException
+    {
         enqueueForPushing(imageId, ofNullable(imageConfig.getNameAndTag()), ofNullable(imageConfig.getRegistry()));
     }
 
-    protected void enqueueForPushing(final String imageId, final Optional<String> nameAndTag, final Optional<String> registry) throws MojoFailureException {
+    protected void enqueueForPushing(final String imageId, final Optional<String> nameAndTag, final Optional<String> registry)
+            throws MojoFailureException, MojoExecutionException
+    {
         if (!registry.isPresent()) {
             enqueueForPushing(imageId, nameAndTag);
             return;
@@ -329,7 +335,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
         enqueueForPushingToRegistry(imageId, nameAndTag, registry.get());
     }
 
-    protected void enqueueForPushingToRegistry(final String imageId, final Optional<String> nameAndTag, final String registry) throws MojoFailureException {
+    protected void enqueueForPushingToRegistry(final String imageId, final Optional<String> nameAndTag, final String registry)
+            throws MojoFailureException, MojoExecutionException
+    {
         requireNonNull(nameAndTag.orElse(null), "When pushing to an explicit registry, name-and-tag must be set.");
 
         // build extended tag by prepending registry to name and tag
@@ -357,7 +365,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
         return Collections.unmodifiableList(list);
     }
 
-    protected void attachTag(String imageId, String nameAndTag) throws MojoFailureException {
+    protected void attachTag(String imageId, String nameAndTag)
+            throws MojoFailureException, MojoExecutionException
+    {
         try {
             getLog().info(String.format("Tagging image '%s' with tag '%s'..", imageId, nameAndTag));
             getDockerProvider().tagImage(imageId, nameAndTag);
