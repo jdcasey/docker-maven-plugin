@@ -159,7 +159,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
         return Collections.unmodifiableCollection(builtImagesMap.values());
     }
 
-    protected void cleanUpStartedContainers() {
+    protected void cleanUpStartedContainers()
+            throws MojoExecutionException
+    {
         Optional<Path> logsDir = Optional.ofNullable(stripToNull(logs)).map(this::getLogDirectory);
         if (logsDir.isPresent()) {
             getLog().info("Writing docker container logs to directory: " + logsDir.get());

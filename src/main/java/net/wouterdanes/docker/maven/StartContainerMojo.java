@@ -107,7 +107,18 @@ public class StartContainerMojo extends AbstractPreVerifyDockerMojo {
             @Override
             public void run()
             {
-                cleanUpStartedContainers();
+                try
+                {
+                    cleanUpStartedContainers();
+                }
+                catch ( MojoExecutionException e )
+                {
+                    if ( getLog().isDebugEnabled() )
+                    {
+                        e.printStackTrace();
+                    }
+                    getLog().error( "Failed to cleanup started containers: " + e.getMessage());
+                }
             }
         }));
     }
@@ -125,7 +136,8 @@ public class StartContainerMojo extends AbstractPreVerifyDockerMojo {
                 .forEach(this::waitForContainerToFinishStartup);
     }
 
-    private void waitForContainerToFinishStartup(final ContainerStartConfiguration container) {
+    private void waitForContainerToFinishStartup(final ContainerStartConfiguration container)
+    {
         Pattern pattern = Pattern.compile(container.getWaitForStartup());
         Optional<StartedContainerInfo> startedContainerInfo = getInfoForContainerStartId(container.getId());
         if (!startedContainerInfo.isPresent()) {
@@ -136,7 +148,18 @@ public class StartContainerMojo extends AbstractPreVerifyDockerMojo {
         long maxWait = System.currentTimeMillis() + 1000 * container.getStartupTimeout();
         boolean finished = false;
         while (System.currentTimeMillis() <= maxWait) {
-            String logs = getDockerProvider().getLogs(containerId);
+            String logs = null;
+            try
+            {
+                logs = getDockerProvider().getLogs( containerId);
+            }
+            catch ( MojoExecutionException e )
+            {
+                getLog().error("Failed to setup docker provider", e);
+                finished=false;
+                break;
+            }
+
             if (logs != null && pattern.matcher(logs).find()) {
                 getLog().info(String.format("Container '%s' has completed startup", container.getId()));
                 finished = true;
