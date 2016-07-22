@@ -33,9 +33,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "stop-containers", threadSafe = true, defaultPhase = LifecyclePhase.POST_INTEGRATION_TEST)
 public class StopContainerMojo extends AbstractPreVerifyDockerMojo {
 
-    @Parameter(property = "docker.keepContainers")
-    private boolean keepContainers;
-
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         cleanUpStartedContainers();
@@ -55,6 +52,10 @@ public class StopContainerMojo extends AbstractPreVerifyDockerMojo {
                 } catch (DockerException e) {
                     getLog().error("Failed to remove image", e);
                 }
+            }
+            else
+            {
+                System.out.println( "Keeping containers! Be sure to remove them manually!!" );
             }
         }
     }

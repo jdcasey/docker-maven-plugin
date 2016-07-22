@@ -69,6 +69,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
     @Component
     private RepositorySystem repositorySystem;
 
+    @Parameter(property = "docker.keepContainers")
+    protected boolean keepContainers;
+
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
     private RepositorySystemSession repositorySystemSession;
 
@@ -201,12 +204,16 @@ public abstract class AbstractDockerMojo extends AbstractMojo {
                 getLog().error("Failed to stop container (this means it also won't be deleted)", e);
             }
         }
-        for (String containerId : stoppedContainerIds) {
-            getLog().info(String.format("Deleting container '%s'..", containerId));
-            try {
-                getDockerProvider().deleteContainer(containerId);
-            } catch (DockerException e) {
-                getLog().error("Failed to delete container", e);
+
+        if ( !keepContainers )
+        {
+            for (String containerId : stoppedContainerIds) {
+                getLog().info(String.format("Deleting container '%s'..", containerId));
+                try {
+                    getDockerProvider().deleteContainer(containerId);
+                } catch (DockerException e) {
+                    getLog().error("Failed to delete container", e);
+                }
             }
         }
     }
