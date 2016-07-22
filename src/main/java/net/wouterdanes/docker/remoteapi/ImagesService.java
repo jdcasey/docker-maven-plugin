@@ -21,14 +21,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonStreamParser;
 import net.wouterdanes.docker.remoteapi.model.ImageDescriptor;
+import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.Optional;
 
 /**
@@ -65,10 +68,18 @@ public class ImagesService extends BaseService {
             target = target.queryParam("tag", descriptor.getTag().get());
         }
 
+        System.out.printf("setting auth header '%s' with value: '%s'\n", REGISTRY_AUTH_HEADER, getRegistryAuthHeaderValue() );
+        System.out.printf( "Sending request to: '%s'\n", target.getUri() );
+
         Response response = target.request()
                 .header(REGISTRY_AUTH_HEADER, getRegistryAuthHeaderValue())
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .post(null);
+
+        System.out.printf( "Response status: '%s'\n", response.getStatus() );
+        response.getHeaders().forEach( (key,values)->{
+            System.out.printf( "Response header: '%s' = %s\n", key, values );
+        } );
 
         InputStream inputStream = (InputStream) response.getEntity();
 
@@ -78,16 +89,27 @@ public class ImagesService extends BaseService {
     }
 
     private static void parseStreamToDisplayImageDownloadStatus(final InputStream inputStream) {
-        InputStreamReader isr = new InputStreamReader(inputStream);
-        BufferedReader reader = new BufferedReader(isr);
+        String json;
+        try
+        {
+            json = IOUtils.toString( inputStream );
+            System.out.printf( "Got JSON response:\n\n%s\n\n", json );
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( "Cannot read image download status response: " + e.getMessage(), e );
+        }
 
-        JsonStreamParser parser = new JsonStreamParser(reader);
+//        InputStreamReader isr = new InputStreamReader(inputStream);
+//        BufferedReader reader = new BufferedReader(isr);
+
+        JsonStreamParser parser = new JsonStreamParser( new StringReader( json ) );
 
         while (parser.hasNext()) {
             JsonElement element = parser.next();
             JsonObject object = element.getAsJsonObject();
             if (object.has("status")) {
-                System.out.print(".");
+                System.out.print(object.get("status").getAsString() + ".");
             }
             if (object.has("error")) {
                 System.err.println("ERROR: " + object.get("error").getAsString());
