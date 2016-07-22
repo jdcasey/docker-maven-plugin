@@ -47,6 +47,7 @@ public class ContainersService extends BaseService {
     public String createContainer(ContainerCreateRequest containerCreateRequest) {
         String createResponseStr;
         try {
+            System.out.printf( "CREATE: %s\n", getServiceEndPoint().path( "/create" ).getUri() );
             createResponseStr = getServiceEndPoint()
                     .path("/create")
                     .request(MediaType.APPLICATION_JSON_TYPE)

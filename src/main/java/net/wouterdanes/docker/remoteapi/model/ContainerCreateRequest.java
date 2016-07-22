@@ -46,6 +46,9 @@ public class ContainerCreateRequest {
     private List<String> env;
     @JsonProperty("MacAddress")
     private String macAddress;
+
+    @JsonProperty("HostConfig")
+    private ContainerHostConfig hostConfig;
     
     public String getHostname() {
         return hostname;
@@ -117,6 +120,12 @@ public class ContainerCreateRequest {
 
     public ContainerCreateRequest fromImage(String image) {
         this.image = image;
+        return this;
+    }
+
+    public ContainerCreateRequest withHostConfig( ContainerHostConfig hostConfig )
+    {
+        this.hostConfig = hostConfig;
         return this;
     }
 

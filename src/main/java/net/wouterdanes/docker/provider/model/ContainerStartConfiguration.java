@@ -59,6 +59,11 @@ public class ContainerStartConfiguration {
     private String macAddress;
 
     /**
+     * Supply an optional network mode
+     */
+    private String networkMode;
+
+    /**
      * Set the image name or id to use and returns the object so you can chain from/with statements.
      *
      * @param image the image name or id
@@ -110,6 +115,12 @@ public class ContainerStartConfiguration {
         this.macAddress = macAddress;
         return this;
     }
+
+    public ContainerStartConfiguration withNetworkMode( String networkMode )
+    {
+        this.networkMode = networkMode;
+        return this;
+    }
     
     public String getImage() {
         return image;
@@ -141,5 +152,10 @@ public class ContainerStartConfiguration {
 
     public int getStartupTimeout() {
         return startupTimeout != 0 ? startupTimeout : DEFAULT_STARTUP_TIMEOUT;
+    }
+
+    public String getNetworkMode()
+    {
+        return networkMode;
     }
 }
