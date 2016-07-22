@@ -24,6 +24,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import net.wouterdanes.docker.provider.model.BuiltImageInfo;
 import net.wouterdanes.docker.remoteapi.exception.DockerException;
+import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * This class is responsible for stopping the docker containers that were started by the plugin. The goal
@@ -31,6 +32,9 @@ import net.wouterdanes.docker.remoteapi.exception.DockerException;
  */
 @Mojo(name = "stop-containers", threadSafe = true, defaultPhase = LifecyclePhase.POST_INTEGRATION_TEST)
 public class StopContainerMojo extends AbstractPreVerifyDockerMojo {
+
+    @Parameter
+    private boolean keepContainers;
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -44,10 +48,13 @@ public class StopContainerMojo extends AbstractPreVerifyDockerMojo {
 
             getLog().info(String.format("Removing image '%s' (%s) ...", image.getImageId(), image.getStartId()));
 
-            try {
-                getDockerProvider().removeImage(image.getImageId());
-            } catch (DockerException e) {
-                getLog().error("Failed to remove image", e);
+            if ( !keepContainers )
+            {
+                try {
+                    getDockerProvider().removeImage(image.getImageId());
+                } catch (DockerException e) {
+                    getLog().error("Failed to remove image", e);
+                }
             }
         }
     }
