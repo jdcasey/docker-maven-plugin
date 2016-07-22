@@ -47,11 +47,12 @@ public class ContainersService extends BaseService {
     public String createContainer(ContainerCreateRequest containerCreateRequest) {
         String createResponseStr;
         try {
-            System.out.printf( "CREATE: %s\n", getServiceEndPoint().path( "/create" ).getUri() );
+            String json = toJson(containerCreateRequest);
+            System.out.printf( "CREATE: %s\nJSON:\n\n%s\n\n", getServiceEndPoint().path( "/create" ).getUri(), json );
             createResponseStr = getServiceEndPoint()
                     .path("/create")
                     .request(MediaType.APPLICATION_JSON_TYPE)
-                    .post(Entity.entity(toJson(containerCreateRequest), MediaType.APPLICATION_JSON_TYPE), String.class);
+                    .post(Entity.entity(json, MediaType.APPLICATION_JSON_TYPE), String.class);
         } catch (WebApplicationException e) {
             throw makeImageTargetingException(containerCreateRequest.getImage(), e);
         }
