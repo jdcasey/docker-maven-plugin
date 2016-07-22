@@ -86,7 +86,9 @@ public abstract class BaseService {
         if (credentials == null) {
             return REGISTRY_AUTH_NULL_VALUE;
         }
-        return Base64.getEncoder().encodeToString(toJson(credentials).getBytes(Charset.forName("UTF-8")));
+        String json = toJson(credentials);
+        System.out.printf( "Credentials (pre-encoding): '%s'\n", json );
+        return Base64.getEncoder().encodeToString(json.getBytes(Charset.forName("UTF-8")));
     }
 
     protected String toJson(Object obj) {
