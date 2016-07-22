@@ -33,7 +33,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "stop-containers", threadSafe = true, defaultPhase = LifecyclePhase.POST_INTEGRATION_TEST)
 public class StopContainerMojo extends AbstractPreVerifyDockerMojo {
 
-    @Parameter
+    @Parameter(property = "docker.keepContainers")
     private boolean keepContainers;
 
     @Override
