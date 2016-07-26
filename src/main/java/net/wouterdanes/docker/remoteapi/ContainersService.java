@@ -58,7 +58,7 @@ public class ContainersService extends BaseService {
                 target.queryParam( "name", name );
             }
 
-            System.out.printf( "POST: %s\n%s\n\n", target.getUri(), json );
+            System.out.printf( "[create] POST: %s\n%s\n\n", target.getUri(), json );
 
             Invocation.Builder request = target.request( MediaType.APPLICATION_JSON_TYPE );
             createResponseStr  = request.post(Entity.entity(json, MediaType.APPLICATION_JSON_TYPE), String.class);
@@ -132,11 +132,11 @@ public class ContainersService extends BaseService {
     }
 
     public void startContainer(String id, ContainerStartRequest configuration) {
-        Response response = getServiceEndPoint()
-                .path(id)
-                .path("/start")
-                .request()
-                .post(Entity.entity(toJson(configuration), MediaType.APPLICATION_JSON_TYPE));
+        String json = toJson(configuration);
+        WebTarget target = getServiceEndPoint().path( id ).path( "/start" );
+
+        System.out.printf( "[start] POST %s\n%s\n\n", target.getUri(), json );
+        Response response = target.request().post( Entity.entity( json, MediaType.APPLICATION_JSON_TYPE ) );
 
         Response.StatusType statusInfo = response.getStatusInfo();
         response.close();
