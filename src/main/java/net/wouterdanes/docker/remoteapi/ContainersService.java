@@ -27,6 +27,8 @@ import net.wouterdanes.docker.remoteapi.model.ContainerStartRequest;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.nio.ByteBuffer;
@@ -48,11 +50,19 @@ public class ContainersService extends BaseService {
         String createResponseStr;
         try {
             String json = toJson(containerCreateRequest);
-            System.out.printf( "CREATE: %s\nJSON:\n\n%s\n\n", getServiceEndPoint().path( "/create" ).getUri(), json );
-            createResponseStr = getServiceEndPoint()
-                    .path("/create")
-                    .request(MediaType.APPLICATION_JSON_TYPE)
-                    .post(Entity.entity(json, MediaType.APPLICATION_JSON_TYPE), String.class);
+            WebTarget target = getServiceEndPoint().path( "/create" );
+
+            String name = containerCreateRequest.getContainerName();
+            if ( name != null )
+            {
+                target.queryParam( "name", name );
+            }
+
+            System.out.printf( "POST: %s\n%s\n\n", target.getUri(), json );
+
+            Invocation.Builder request = target.request( MediaType.APPLICATION_JSON_TYPE );
+            createResponseStr  = request.post(Entity.entity(json, MediaType.APPLICATION_JSON_TYPE), String.class);
+
         } catch (WebApplicationException e) {
             throw makeImageTargetingException(containerCreateRequest.getImage(), e);
         }
@@ -132,6 +142,11 @@ public class ContainersService extends BaseService {
         response.close();
 
         checkContainerTargetingResponse(id, statusInfo);
+
+        Response inspectionResp = getServiceEndPoint().path( id ).path( "/json" ).request().get();
+        Object entity = inspectionResp.getEntity();
+        System.out.printf( "Inspection of started container:\n\n%s\n\n", entity );
+        
     }
 
     public void stopContainer(String id) {
