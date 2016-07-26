@@ -144,9 +144,9 @@ public class ContainersService extends BaseService {
         checkContainerTargetingResponse(id, statusInfo);
 
         Response inspectionResp = getServiceEndPoint().path( id ).path( "/json" ).request().get();
-        Object entity = inspectionResp.getEntity();
+        String entity = inspectionResp.readEntity(String.class);
         System.out.printf( "Inspection of started container:\n\n%s\n\n", entity );
-        
+
     }
 
     public void stopContainer(String id) {
