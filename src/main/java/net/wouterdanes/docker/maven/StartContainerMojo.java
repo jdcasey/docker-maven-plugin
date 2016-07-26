@@ -20,6 +20,8 @@ package net.wouterdanes.docker.maven;
 import net.wouterdanes.docker.provider.DockerProvider;
 import net.wouterdanes.docker.provider.model.BuiltImageInfo;
 import net.wouterdanes.docker.provider.model.ContainerStartConfiguration;
+import net.wouterdanes.docker.provider.model.ExposedNetwork;
+import net.wouterdanes.docker.provider.model.ExposedNetworkInfo;
 import net.wouterdanes.docker.provider.model.ExposedPort;
 import net.wouterdanes.docker.remoteapi.exception.DockerException;
 import net.wouterdanes.docker.remoteapi.model.ContainerInspectionResult;
@@ -82,8 +84,18 @@ public class StartContainerMojo extends AbstractPreVerifyDockerMojo {
                 getLog().info(String.format("Starting container '%s'..", configuration.getId()));
                 ContainerInspectionResult container = provider.startContainer(configuration);
                 String containerId = container.getId();
-                List<ExposedPort> exposedPorts = provider.getExposedPorts(containerId);
-                exposePortsToProject(configuration, exposedPorts);
+
+                ExposedNetworkInfo networkInfo = provider.getExposedNetworkInfo( containerId );
+
+                if ( networkInfo != null )
+                {
+                    List<ExposedPort> exposedPorts = networkInfo.getExposedPorts();
+                    exposePortsToProject(configuration, exposedPorts);
+
+                    List<ExposedNetwork> exposedNetworks = networkInfo.getExposedNetworks();
+                    exposeNetworksToProject( configuration, exposedNetworks );
+                }
+
                 getLog().info(String.format("Started container with id '%s'", containerId));
                 registerStartedContainer(configuration.getId(), container);
             } catch (DockerException e) {
@@ -220,6 +232,14 @@ public class StartContainerMojo extends AbstractPreVerifyDockerMojo {
                     configuration.getId(), port.getContainerPort());
             addPropertyToProject(prefix + "host", port.getHost());
             addPropertyToProject(prefix + "port", String.valueOf(port.getExternalPort()));
+        });
+    }
+
+    private void exposeNetworksToProject(ContainerStartConfiguration configuration, List<ExposedNetwork> exposedNetworks) {
+        exposedNetworks.parallelStream().forEach(net -> {
+            String key = String.format("docker.containers.%s.nets.%s",
+                                          configuration.getId(), net.getName());
+            addPropertyToProject(key, net.getIpAddress());
         });
     }
 
