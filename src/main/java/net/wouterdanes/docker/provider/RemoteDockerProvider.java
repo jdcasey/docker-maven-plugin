@@ -61,7 +61,12 @@ public class RemoteDockerProvider extends RemoteApiBasedDockerProvider {
         List<ExposedPort> exposedPorts = new ArrayList<>();
         for (Map.Entry<String, List<ContainerInspectionResult.NetworkSettings.PortMappingInfo>> port : ports.entrySet()) {
             String exposedPort = port.getKey();
-            System.out.printf( "Port mapping: key='%s', value(s)='%s'\n", exposedPort, port.getValue() );
+            if ( port.getValue() == null || port.getValue().isEmpty() )
+            {
+                System.out.printf( "Exposed ports list is empty / missing for: '%s'\n", exposedPort );
+                continue;
+            }
+
             int hostPort = port.getValue().get(0).getHostPort();
             exposedPorts.add(new ExposedPort(exposedPort, hostPort, getHost()));
         }
