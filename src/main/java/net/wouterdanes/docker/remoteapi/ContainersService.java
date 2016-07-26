@@ -136,7 +136,7 @@ public class ContainersService extends BaseService {
         WebTarget target = getServiceEndPoint().path( id ).path( "/start" );
 
         System.out.printf( "[start] POST %s\n%s\n\n", target.getUri(), json );
-        Response response = target.request().post( Entity.entity( json, MediaType.APPLICATION_JSON_TYPE ) );
+        Response response = target.request().method("POST"); // Entity.entity( json, MediaType.APPLICATION_JSON_TYPE ) );
 
         Response.StatusType statusInfo = response.getStatusInfo();
         response.close();
